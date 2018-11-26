@@ -82,12 +82,21 @@ function getItems(rootContext, entry, rules) {
       })
       isClassical = false
     } catch (error) {
-      resourcePath = resolve.sync(request, {
-        basedir: rootContext,
-        extensions: RESOLVE_EXTENSIONS,
-      })
-      request = `!${minaLoader}!${virtualMinaLoader}!${resourcePath}`
-      isClassical = true
+      try {
+        resourcePath = resolve.sync(request, {
+          basedir: rootContext,
+          extensions: RESOLVE_EXTENSIONS,
+        })
+        request = `!${minaLoader}!${virtualMinaLoader}!${resourcePath}`
+        isClassical = true
+      } catch (error) {
+        // 不能解析的模块不要抛出异常，而是加入到一个错误列表里面去
+        memory.push({
+          name: '<not_found>',
+          request: request
+        })
+        return
+      }
     }
 
     resourcePath = fs.realpathSync(resourcePath)
