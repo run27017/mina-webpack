@@ -65,6 +65,18 @@ function resolveFile(source, target, context, workdir = './') {
   )
 }
 
+function normalizeModulePath(source, target, context, workdir = './') {
+  try {
+    return resolveFile(...arguments)
+  } catch (error) {
+    if (error.code === 'MODULE_NOT_FOUND') {
+      return target
+    } else {
+      throw error
+    }
+  }
+}
+
 function resolveFromModule(context, filename) {
   return path.relative(
     context,
@@ -119,7 +131,7 @@ module.exports = function(source) {
         : mapObject.bind(null, pages)
       return Object.assign(config, {
         pages: map(page =>
-          resolveFile(this.resourcePath, page, this.rootContext)
+          normalizeModulePath(this.resourcePath, page, this.rootContext)
         ),
       })
     })
@@ -136,7 +148,7 @@ module.exports = function(source) {
         subPackages: subPackages.map(({ root, pages }) => ({
           root,
           pages: pages.map(page =>
-            resolveFile(
+            normalizeModulePath(
               this.resourcePath,
               path.join(root, page),
               this.rootContext,
@@ -160,7 +172,7 @@ module.exports = function(source) {
             return file
           }
 
-          return resolveFile(this.resourcePath, file, this.rootContext)
+          return normalizeModulePath(this.resourcePath, file, this.rootContext)
         }),
       })
     })
@@ -174,7 +186,7 @@ module.exports = function(source) {
 
       return Object.assign(config, {
         publicComponents: mapObject(config.publicComponents, file =>
-          resolveFile(this.resourcePath, file, this.rootContext)
+          normalizeModulePath(this.resourcePath, file, this.rootContext)
         ),
       })
     })
